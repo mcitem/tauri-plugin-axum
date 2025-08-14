@@ -1,0 +1,40 @@
+{
+  "name": "@mcitem/tauri-plugin-axum",
+  "version": "0.1.1",
+  "author": "mcitem",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcitem/tauri-plugin-axum.git"
+  },
+  "description": "A Tauri plugin that allows calling Axum Router endpoints directly.",
+  "keywords": [
+    "tauri-plugin",
+    "axum"
+  ],
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "import": "./dist/index.js",
+    "require": "./dist/index.cjs"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.7.0"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.4",
+    "rollup": "^4.46.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.2"
+  }
+}

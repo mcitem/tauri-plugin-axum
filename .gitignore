@@ -1,0 +1,8 @@
+Cargo.lock
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+target
+node_modules
+dist
+dist-js
