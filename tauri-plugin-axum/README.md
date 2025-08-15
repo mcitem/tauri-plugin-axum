@@ -2,11 +2,11 @@
 
 # Install
 
-```sh
+```bash
 cargo add tauri-plugin-axum
 ```
 
-```sh
+```bash
 pnpm i @mcitem/tauri-plugin-axum
 ```
 
@@ -23,7 +23,7 @@ pnpm i @mcitem/tauri-plugin-axum
 
 # Example
 
-```rs
+```rust,no_run
 #[derive(Serialize, Deserialize)]
 struct Greet {
     axum: String,
@@ -45,7 +45,7 @@ tauri::Builder::default()
     ))
 ```
 
-```ts
+```typescript
 import { axum } from "@mcitem/tauri-plugin-axum";
 axum.get<string>("/").then((response) => {
   console.log(response.body); // "Hello, World!"

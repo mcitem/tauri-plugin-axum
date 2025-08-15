@@ -10,7 +10,7 @@ license = "MIT"
 repository = "https://github.com/mcitem/tauri-plugin-axum"
 keywords = ["tauri-plugin", "axum"]
 
-readme = "../README.md"
+readme = "./README.md"
 
 links = "tauri-plugin-axum"
 
