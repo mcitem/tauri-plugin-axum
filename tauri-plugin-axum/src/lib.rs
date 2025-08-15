@@ -5,11 +5,9 @@ use axum::extract::Request;
 use axum::Router;
 use http_body_util::BodyExt;
 use std::collections::HashMap;
+use std::marker::PhantomData;
 use tauri::ipc::{InvokeBody, Request as IpcRequest};
-use tauri::{
-    plugin::{Builder, TauriPlugin},
-    Manager, Runtime,
-};
+use tauri::{plugin::TauriPlugin, Manager, Runtime};
 use tower::Service;
 
 mod commands;
@@ -79,11 +77,31 @@ impl Axum {
 ///     ))
 /// ```
 pub fn init<R: Runtime>(router: Router) -> TauriPlugin<R> {
-    Builder::new("axum")
-        .invoke_handler(tauri::generate_handler![commands::call])
-        .setup(|app, __api| {
-            app.manage(Axum(router));
-            Ok(())
-        })
-        .build()
+    Builder::new(router).build()
 }
+
+pub struct Builder<R: Runtime> {
+    router: Router,
+    _r: PhantomData<R>,
+}
+
+impl<R: Runtime> Builder<R> {
+    pub fn new(router: Router) -> Self {
+        Self {
+            router,
+            _r: PhantomData,
+        }
+    }
+
+    pub fn build(self) -> TauriPlugin<R> {
+        tauri::plugin::Builder::new("axum")
+            .invoke_handler(tauri::generate_handler![commands::call])
+            .setup(|app, __api| {
+                app.manage(Axum(self.router));
+                Ok(())
+            })
+            .build()
+    }
+}
+
+impl<R: Runtime> Builder<R> {}
