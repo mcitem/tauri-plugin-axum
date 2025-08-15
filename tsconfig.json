@@ -3,11 +3,12 @@
     "target": "es2021",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "skipLibCheck": true,
+
     "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
     "noUnusedLocals": true,
-    "noImplicitAny": true,
-    "noEmit": true
+    "noImplicitAny": true
   },
   "include": ["src/*.ts"],
   "exclude": ["dist-js", "node_modules"]
