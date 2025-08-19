@@ -1,6 +1,6 @@
 {
   "name": "@mcitem/tauri-plugin-axum",
-  "version": "0.1.1",
+  "version": "0.2.2",
   "author": "mcitem",
   "license": "MIT",
   "repository": {
@@ -31,13 +31,13 @@
   "files": [
     "dist",
     "LICENSE",
-    "README"
+    "README.md"
   ],
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "prepack": "rollup -c && shx cp tauri-plugin-axum/README.md ./README",
-    "postpack": "shx rm README"
+    "prepack": "rollup -c && shx rm README.md && shx cp tauri-plugin-axum/README.md ./README.md",
+    "postpack": "shx rm README.md && shx ln -s tauri-plugin-axum/README.md ./README.md"
   },
   "dependencies": {
     "@tauri-apps/api": "^2"

@@ -1,5 +1,8 @@
 # tauri-plugin-axum
 
+[![Crates.io Version](https://img.shields.io/crates/v/tauri-plugin-axum)](https://crates.io/crates/tauri-plugin-axum)
+[![NPM Version](https://img.shields.io/npm/v/@mcitem/tauri-plugin-axum)](https://www.npmjs.com/package/@mcitem/tauri-plugin-axum)
+
 # Install
 
 ```bash
@@ -53,6 +56,19 @@ axum.get<string>("/").then((response) => {
 axum.post<{ axum: string; tauri: string }>("/post", {
   axum: "hello axum",
   tauri: "hello tauri",
+});
+
+import { fetch } from "@mcitem/tauri-plugin-axum/fetch";
+fetch("/", { method: "GET" })
+  .then((res) => res.text())
+  .then((res) => {
+    console.log(res);
+  });
+
+import axios from "axios";
+import { Adapter } from "@mcitem/tauri-plugin-axum/axios";
+const instance = axios.create({
+  adapter: Adapter,
 });
 ```
 
