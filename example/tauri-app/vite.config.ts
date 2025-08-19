@@ -1,10 +1,15 @@
+import { join } from "path";
 import { defineConfig } from "vite";
-
-// @ts-expect-error process is a nodejs global
+import react from "@vitejs/plugin-react";
 const host = process.env.TAURI_DEV_HOST;
 
-// https://vite.dev/config/
 export default defineConfig(async () => ({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      "@mcitem/tauri-plugin-axum": join(__dirname, "../../dist/"),
+    },
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
