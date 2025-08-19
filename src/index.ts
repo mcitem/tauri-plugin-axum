@@ -22,11 +22,12 @@ export interface AxumClientOptions {
   defaultHeaders?: Record<string, string>;
 }
 
+export const textdecoder = new TextDecoder();
+
 export class AxumClient {
-  private textdecoder = new TextDecoder();
   private bodyParser: (body: any) => any = (body) => {
     if (Array.isArray(body)) {
-      const text = this.textdecoder.decode(new Uint8Array(body));
+      const text = textdecoder.decode(new Uint8Array(body));
       try {
         return JSON.parse(text);
       } catch {

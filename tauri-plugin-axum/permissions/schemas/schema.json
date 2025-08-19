@@ -307,10 +307,58 @@
           "markdownDescription": "Denies the call command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`",
+          "description": "Enables the fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-fetch",
+          "markdownDescription": "Enables the fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-fetch",
+          "markdownDescription": "Denies the fetch command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_cancel command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-fetch-cancel",
+          "markdownDescription": "Enables the fetch_cancel command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_cancel command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-fetch-cancel",
+          "markdownDescription": "Denies the fetch_cancel command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_read_body command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-fetch-read-body",
+          "markdownDescription": "Enables the fetch_read_body command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_read_body command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-fetch-read-body",
+          "markdownDescription": "Denies the fetch_read_body command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the fetch_send command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-fetch-send",
+          "markdownDescription": "Enables the fetch_send command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the fetch_send command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-fetch-send",
+          "markdownDescription": "Denies the fetch_send command without any pre-configured scope."
+        },
+        {
+          "description": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`\n- `allow-fetch`\n- `allow-fetch-send`\n- `allow-fetch-cancel`\n- `allow-fetch-read-body`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`"
+          "markdownDescription": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`\n- `allow-fetch`\n- `allow-fetch-send`\n- `allow-fetch-cancel`\n- `allow-fetch-read-body`"
         }
       ]
     }

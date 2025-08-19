@@ -14,6 +14,10 @@ pub enum Error {
     Http(#[from] axum::http::Error),
     #[error(transparent)]
     Axum(#[from] axum::Error),
+    #[error(transparent)]
+    Tauri(#[from] tauri::Error),
+    #[error("request canceled")]
+    Canceled,
 }
 
 impl Serialize for Error {

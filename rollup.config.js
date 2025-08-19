@@ -1,31 +1,43 @@
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { cwd } from "node:process";
+import alias from "@rollup/plugin-alias";
+import copy from "rollup-plugin-copy";
 import typescript from "@rollup/plugin-typescript";
+import { defineConfig } from "rollup";
 
-const pkg = JSON.parse(readFileSync(join(cwd(), "package.json"), "utf8"));
-
-export default {
-  input: "src/index.ts",
+export default defineConfig({
+  treeshake: {
+    moduleSideEffects: false,
+  },
+  input: ["src/index.ts", "src/fetch.ts", "src/axios.js"],
   output: [
     {
-      file: pkg.exports.import,
+      entryFileNames: "[name].js",
       format: "esm",
+      dir: "dist",
     },
     {
-      file: pkg.exports.require,
+      entryFileNames: "[name].cjs",
       format: "cjs",
+      dir: "dist",
     },
   ],
   plugins: [
+    copy({
+      targets: [{ src: "src/axios.d.ts", dest: "dist" }],
+    }),
+    alias({
+      entries: [
+        {
+          find: "axios/lib",
+          replacement: join(cwd(), "./node_modules/axios/lib"),
+        },
+      ],
+    }),
     typescript({
       declaration: true,
-      declarationDir: dirname(pkg.exports.import),
+      declarationDir: "dist",
     }),
   ],
-  external: [
-    /^@tauri-apps\/api/,
-    ...Object.keys(pkg.dependencies || {}),
-    ...Object.keys(pkg.peerDependencies || {}),
-  ],
-};
+  external: [/^@tauri-apps\/api/, /^axios/],
+});

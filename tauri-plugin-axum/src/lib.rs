@@ -6,6 +6,7 @@ use axum::Router;
 use http_body_util::BodyExt;
 use std::collections::HashMap;
 use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 use tauri::ipc::{InvokeBody, Request as IpcRequest};
 use tauri::{plugin::TauriPlugin, Manager, Runtime};
 use tower::Service;
@@ -28,12 +29,26 @@ impl<R: Runtime, T: Manager<R>> crate::AxumExt<R> for T {
     }
 }
 
-pub struct Axum(Router);
+pub struct Axum(pub Router);
+
+impl Deref for Axum {
+    type Target = Router;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Axum {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 impl Axum {
     pub async fn call(&self, req: IpcRequest<'_>) -> Result<AxumResponse> {
         let mut rr = Request::builder();
-        let _ = std::mem::replace(rr.headers_mut().unwrap(), req.headers().clone());
+        *rr.headers_mut().unwrap() = req.headers().clone();
 
         rr = rr.uri(req.headers().get("x-uri").ok_or(Error::Uri)?.as_ref());
         rr = rr.method(req.headers().get("x-method").ok_or(Error::Method)?.as_ref());
@@ -95,7 +110,13 @@ impl<R: Runtime> Builder<R> {
 
     pub fn build(self) -> TauriPlugin<R> {
         tauri::plugin::Builder::new("axum")
-            .invoke_handler(tauri::generate_handler![commands::call])
+            .invoke_handler(tauri::generate_handler![
+                commands::call,
+                commands::fetch,
+                commands::fetch_cancel,
+                commands::fetch_send,
+                commands::fetch_read_body
+            ])
             .setup(|app, __api| {
                 app.manage(Axum(self.router));
                 Ok(())

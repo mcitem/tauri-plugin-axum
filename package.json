@@ -17,9 +17,16 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "exports": {
-    "types": "./dist/index.d.ts",
-    "import": "./dist/index.js",
-    "require": "./dist/index.cjs"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "require": "./dist/*.cjs"
+    }
   },
   "files": [
     "dist",
@@ -33,14 +40,24 @@
     "postpack": "shx rm README"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.7.0"
+    "@tauri-apps/api": "^2"
+  },
+  "peerDependencies": {
+    "axios": "^1"
+  },
+  "peerDependenciesMeta": {
+    "axios": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
+    "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-typescript": "^12.1.4",
     "eslint": "^9.33.0",
+    "@eslint/js": "^9.33.0",
     "globals": "^16.3.0",
     "rollup": "^4.46.2",
+    "rollup-plugin-copy": "^3.5.0",
     "shx": "^0.4.0",
     "tslib": "^2.8.1",
     "typescript": "^5.9.2",
