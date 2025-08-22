@@ -307,6 +307,18 @@
           "markdownDescription": "Denies the call command without any pre-configured scope."
         },
         {
+          "description": "Enables the call_json command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-call-json",
+          "markdownDescription": "Enables the call_json command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the call_json command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-call-json",
+          "markdownDescription": "Denies the call_json command without any pre-configured scope."
+        },
+        {
           "description": "Enables the fetch command without any pre-configured scope.",
           "type": "string",
           "const": "allow-fetch",
@@ -355,10 +367,10 @@
           "markdownDescription": "Denies the fetch_send command without any pre-configured scope."
         },
         {
-          "description": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`\n- `allow-fetch`\n- `allow-fetch-send`\n- `allow-fetch-cancel`\n- `allow-fetch-read-body`",
+          "description": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`\n- `allow-call-json`\n- `allow-fetch`\n- `allow-fetch-send`\n- `allow-fetch-cancel`\n- `allow-fetch-read-body`",
           "type": "string",
           "const": "default",
-          "markdownDescription": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`\n- `allow-fetch`\n- `allow-fetch-send`\n- `allow-fetch-cancel`\n- `allow-fetch-read-body`"
+          "markdownDescription": "Default permissions for axum plugin\n#### This default permission set includes:\n\n- `allow-call`\n- `allow-call-json`\n- `allow-fetch`\n- `allow-fetch-send`\n- `allow-fetch-cancel`\n- `allow-fetch-read-body`"
         }
       ]
     }

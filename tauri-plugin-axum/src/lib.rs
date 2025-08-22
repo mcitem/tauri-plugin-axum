@@ -80,6 +80,31 @@ impl Axum {
             body: colleted.to_bytes(),
         })
     }
+
+    pub(crate) async fn call_json(&self, req: IpcRequest<'_>) -> Result<Vec<u8>> {
+        let body = match req.body() {
+            InvokeBody::Raw(raw) => raw.to_vec(),
+            InvokeBody::Json(_) => {
+                return Err(Error::Canceled);
+            }
+        };
+
+        let mut rr = Request::builder().header("Content-Type", "application/json");
+
+        rr = rr.uri(req.headers().get("x-uri").ok_or(Error::Uri)?.as_ref());
+        rr = rr.method(req.headers().get("x-method").ok_or(Error::Method)?.as_ref());
+
+        let res = self
+            .0
+            .clone()
+            .call(rr.body(Body::from(body))?)
+            .await
+            .unwrap();
+
+        let body = res.into_body().collect().await?.to_bytes().to_vec();
+
+        Ok(body)
+    }
 }
 
 /// Initializes the plugin.
@@ -112,6 +137,7 @@ impl<R: Runtime> Builder<R> {
         tauri::plugin::Builder::new("axum")
             .invoke_handler(tauri::generate_handler![
                 commands::call,
+                commands::call_json,
                 commands::fetch,
                 commands::fetch_cancel,
                 commands::fetch_send,

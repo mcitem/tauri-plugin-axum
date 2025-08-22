@@ -2,6 +2,7 @@
 description = "Default permissions for axum plugin"
 permissions = [
     "allow-call",
+    "allow-call-json",
     "allow-fetch",
     "allow-fetch-send",
     "allow-fetch-cancel",

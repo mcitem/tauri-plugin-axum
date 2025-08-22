@@ -4,7 +4,7 @@ import axios from "axios";
 import { Adapter } from "@mcitem/tauri-plugin-axum/axios";
 import { fetch } from "@mcitem/tauri-plugin-axum/fetch";
 import { invoke } from "@tauri-apps/api/core";
-import { axum, AxumResponse } from "@mcitem/tauri-plugin-axum";
+import { axum, AxumResponse, call_json } from "@mcitem/tauri-plugin-axum";
 import { useState } from "react";
 
 const instance = axios.create({
@@ -166,6 +166,19 @@ function App() {
         }}
       >
         stream abort
+      </button>
+      <button
+        onClick={() => {
+          call_json<{ axum: string; tauri: string }>("POST", "/post", {
+            axum: "hello axum",
+            tauri: "hello tauri",
+          }).then((response) => {
+            console.log(response);
+            setState(JSON.stringify(response, null, 2));
+          });
+        }}
+      >
+        call just json body
       </button>
 
       <div style={{ marginTop: "5px" }}></div>

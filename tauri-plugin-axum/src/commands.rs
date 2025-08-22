@@ -29,6 +29,14 @@ pub(crate) async fn call<R: Runtime>(
     app.axum().call(req).await
 }
 
+#[command]
+pub(crate) async fn call_json<R: Runtime>(
+    app: AppHandle<R>,
+    req: IpcRequest<'_>,
+) -> Result<Vec<u8>> {
+    app.axum().call_json(req).await
+}
+
 struct FetchRequest(Mutex<Pin<Box<dyn Future<Output = Result<Response>> + Send>>>);
 struct AbortSender(Sender<()>);
 struct AbortReceiver(Receiver<()>);

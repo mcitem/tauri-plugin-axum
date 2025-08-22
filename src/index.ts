@@ -23,6 +23,7 @@ export interface AxumClientOptions {
 }
 
 export const textdecoder = new TextDecoder();
+export const textencoder = new TextEncoder();
 
 export class AxumClient {
   private bodyParser: (body: any) => any = (body) => {
@@ -86,3 +87,24 @@ export class AxumClient {
 }
 
 export const axum = new AxumClient({});
+
+/// If you don't care about statuscode and headers and only use JSON for communication in the axum body,
+/// you can simply use the call_json method for requests.
+export const call_json = async <T>(method: Method, uri: string, body: any) => {
+  return JSON.parse(
+    textdecoder.decode(
+      new Uint8Array(
+        await invoke<number[]>(
+          "plugin:axum|call_json",
+          textencoder.encode(JSON.stringify(body)),
+          {
+            headers: {
+              "x-method": method,
+              "x-uri": uri,
+            },
+          }
+        )
+      )
+    )
+  ) as T;
+};

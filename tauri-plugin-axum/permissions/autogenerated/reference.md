@@ -5,6 +5,7 @@ Default permissions for axum plugin
 #### This default permission set includes the following:
 
 - `allow-call`
+- `allow-call-json`
 - `allow-fetch`
 - `allow-fetch-send`
 - `allow-fetch-cancel`
@@ -41,6 +42,32 @@ Enables the call command without any pre-configured scope.
 <td>
 
 Denies the call command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`axum:allow-call-json`
+
+</td>
+<td>
+
+Enables the call_json command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`axum:deny-call-json`
+
+</td>
+<td>
+
+Denies the call_json command without any pre-configured scope.
 
 </td>
 </tr>
