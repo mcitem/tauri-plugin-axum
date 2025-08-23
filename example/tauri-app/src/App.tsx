@@ -2,7 +2,7 @@ import "./App.css";
 
 import axios from "axios";
 import { Adapter } from "@mcitem/tauri-plugin-axum/axios";
-import { fetch } from "@mcitem/tauri-plugin-axum/fetch";
+import { fetch as AxumFetch } from "@mcitem/tauri-plugin-axum/fetch";
 import { invoke } from "@tauri-apps/api/core";
 import { axum, AxumResponse, call_json } from "@mcitem/tauri-plugin-axum";
 import { useState } from "react";
@@ -17,6 +17,26 @@ function App() {
 
   return (
     <main className="container">
+      <div>
+        <button
+          onClick={() => {
+            fetch("http://axum.localhost/")
+              .then((res) => res.text())
+              .then((res) => {
+                setState(res);
+              })
+              .catch(() => {
+                fetch("axum://localhost/")
+                  .then((res) => res.text())
+                  .then((res) => {
+                    setState(res);
+                  });
+              });
+          }}
+        >
+          register_uri_scheme_protocol
+        </button>
+      </div>
       <button
         onClick={() => [
           axum.get<string>("/").then((response) => {
@@ -80,7 +100,7 @@ function App() {
       </button>
       <button
         onClick={() => {
-          fetch("/", { method: "GET" })
+          AxumFetch("/", { method: "GET" })
             .then((res) => res.text())
             .then((res) => {
               setState(res);
@@ -95,7 +115,7 @@ function App() {
           const newController = new AbortController();
           setController(newController);
 
-          fetch("/stream-body", {
+          AxumFetch("/stream-body", {
             method: "GET",
             signal: newController.signal,
           })

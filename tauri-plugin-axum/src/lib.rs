@@ -2,6 +2,7 @@
 
 use axum::body::Body;
 use axum::extract::Request;
+use axum::http::Response;
 use axum::Router;
 use futures_util::FutureExt;
 use http_body_util::BodyExt;
@@ -12,7 +13,7 @@ use std::ops::{Deref, DerefMut};
 use tauri::async_runtime::block_on;
 use tauri::ipc::{InvokeBody, Request as IpcRequest};
 use tauri::{plugin::TauriPlugin, Manager, Runtime};
-use tower::Service;
+use tower::{Service, ServiceExt};
 
 mod commands;
 mod error;
@@ -150,7 +151,31 @@ impl<R: Runtime> Builder<R> {
     }
 
     pub fn build(self) -> TauriPlugin<R> {
+        let router_clone = self.router.clone();
         tauri::plugin::Builder::new("axum")
+            .register_asynchronous_uri_scheme_protocol("axum", move |_ctx, request, responder| {
+                let mut svc = router_clone.clone();
+                #[cfg(feature = "cors")]
+                {
+                    svc = svc.layer(tower_http::cors::CorsLayer::permissive());
+                }
+                tauri::async_runtime::spawn(async move {
+                    let (mut parts, body) = svc
+                        .oneshot(request.map(Body::from))
+                        .await
+                        .unwrap()
+                        .into_parts();
+
+                    let body = match body.collect().await {
+                        Ok(b) => b.to_bytes().to_vec(),
+                        Err(e) => {
+                            parts.status = axum::http::StatusCode::INTERNAL_SERVER_ERROR;
+                            e.to_string().into_bytes()
+                        }
+                    };
+                    responder.respond(Response::from_parts(parts, body));
+                });
+            })
             .invoke_handler(tauri::generate_handler![
                 commands::call,
                 commands::call_json,
