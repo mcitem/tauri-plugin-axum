@@ -20,7 +20,7 @@ impl Serialize for AxumResponse {
         let mut state = serializer.serialize_struct("AxumResponse", 3)?;
         state.serialize_field("status", &self.status.as_u16())?;
         state.serialize_field("headers", &self.headers)?;
-        state.serialize_field("body", &self.body.to_vec())?;
+        state.serialize_field("body", &self.body)?;
         state.end()
     }
 }
