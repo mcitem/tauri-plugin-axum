@@ -20,6 +20,13 @@ pub fn run() {
                 println!("do something with path: {:?}", path);
                 router::router()
             }))?;
+
+            // app.handle()
+            //     .plugin(tauri_plugin_axum::try_block_init(async {
+            //         return Err("throw error in setup".into());
+            //         // Ok(router::router())
+            //     })?)?;
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![custom_usage])

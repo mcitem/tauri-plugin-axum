@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::future::Future;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use tauri::async_runtime::block_on;
 use tauri::ipc::{InvokeBody, Request as IpcRequest};
 use tauri::{plugin::TauriPlugin, Manager, Runtime};
 use tower::Service;
@@ -123,7 +124,16 @@ pub fn init<R: Runtime>(router: Router) -> TauriPlugin<R> {
 }
 
 pub fn block_init<R: Runtime, F: Future<Output = Router>>(f: F) -> TauriPlugin<R> {
-    tauri::async_runtime::block_on(f.map(init))
+    block_on(f.map(init))
+}
+
+pub fn try_block_init<
+    R: Runtime,
+    F: Future<Output = std::result::Result<Router, Box<dyn std::error::Error>>>,
+>(
+    f: F,
+) -> std::result::Result<TauriPlugin<R>, Box<dyn std::error::Error>> {
+    Ok(block_on(f).map(init)?)
 }
 
 pub struct Builder<R: Runtime> {
