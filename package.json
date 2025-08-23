@@ -1,6 +1,6 @@
 {
   "name": "@mcitem/tauri-plugin-axum",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": "mcitem",
   "license": "MIT",
   "repository": {
