@@ -3,6 +3,10 @@
 [![Crates.io Version](https://img.shields.io/crates/v/tauri-plugin-axum)](https://crates.io/crates/tauri-plugin-axum)
 [![NPM Version](https://img.shields.io/npm/v/@mcitem/tauri-plugin-axum)](https://www.npmjs.com/package/@mcitem/tauri-plugin-axum)
 
+# Feature
+
+- [Axios](https://github.com/axios/axios) Adapter
+
 # Install
 
 ```bash
@@ -46,6 +50,17 @@ tauri::Builder::default()
             .route("/", routing::get(|| async { "Hello, World!" }))
             .route("/post", routing::post(post_handle))
     ))
+
+// async init router
+tauri::Builder::default()
+    .setup(|app| {
+        let path = app.path().app_config_dir()?;
+        app.handle().plugin(tauri_plugin_axum::block_init(async {
+            println!("do something with path: {:?}", path);
+            router::router()
+        }))?;
+        Ok(())
+    })
 ```
 
 ```typescript

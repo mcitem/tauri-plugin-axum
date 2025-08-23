@@ -3,8 +3,10 @@
 use axum::body::Body;
 use axum::extract::Request;
 use axum::Router;
+use futures_util::FutureExt;
 use http_body_util::BodyExt;
 use std::collections::HashMap;
+use std::future::Future;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use tauri::ipc::{InvokeBody, Request as IpcRequest};
@@ -118,6 +120,10 @@ impl Axum {
 /// ```
 pub fn init<R: Runtime>(router: Router) -> TauriPlugin<R> {
     Builder::new(router).build()
+}
+
+pub fn block_init<R: Runtime, F: Future<Output = Router>>(f: F) -> TauriPlugin<R> {
+    tauri::async_runtime::block_on(f.map(init))
 }
 
 pub struct Builder<R: Runtime> {
