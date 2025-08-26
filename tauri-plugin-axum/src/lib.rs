@@ -151,14 +151,16 @@ impl<R: Runtime> Builder<R> {
     }
 
     pub fn build(self) -> TauriPlugin<R> {
-        let router_clone = self.router.clone();
+        let mut router_clone = self.router.clone();
+
+        #[cfg(feature = "cors")]
+        {
+            router_clone = router_clone.layer(tower_http::cors::CorsLayer::permissive());
+        }
+
         tauri::plugin::Builder::new("axum")
             .register_asynchronous_uri_scheme_protocol("axum", move |_ctx, request, responder| {
-                let mut svc = router_clone.clone();
-                #[cfg(feature = "cors")]
-                {
-                    svc = svc.layer(tower_http::cors::CorsLayer::permissive());
-                }
+                let svc = router_clone.clone();
                 tauri::async_runtime::spawn(async move {
                     let (mut parts, body) = svc
                         .oneshot(request.map(Body::from))
