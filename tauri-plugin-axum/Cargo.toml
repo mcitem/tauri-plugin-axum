@@ -17,6 +17,7 @@ links = "tauri-plugin-axum"
 [features]
 default = ["cors"]
 cors = ["tower-http/cors"]
+catch-panic = ["tower-http/catch-panic"]
 
 [dependencies]
 tauri = { version = "2.7.0" }

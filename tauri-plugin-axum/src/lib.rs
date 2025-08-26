@@ -158,6 +158,11 @@ impl<R: Runtime> Builder<R> {
             router_clone = router_clone.layer(tower_http::cors::CorsLayer::permissive());
         }
 
+        #[cfg(feature = "catch-panic")]
+        {
+            router_clone = router_clone.layer(tower_http::catch_panic::CatchPanicLayer::new());
+        }
+
         tauri::plugin::Builder::new("axum")
             .register_asynchronous_uri_scheme_protocol("axum", move |_ctx, request, responder| {
                 let svc = router_clone.clone();
