@@ -153,14 +153,14 @@ impl<R: Runtime> Builder<R> {
     pub fn build(self) -> TauriPlugin<R> {
         let mut router_clone = self.router.clone();
 
-        #[cfg(feature = "cors")]
-        {
-            router_clone = router_clone.layer(tower_http::cors::CorsLayer::permissive());
-        }
-
         #[cfg(feature = "catch-panic")]
         {
             router_clone = router_clone.layer(tower_http::catch_panic::CatchPanicLayer::new());
+        }
+
+        #[cfg(feature = "cors")]
+        {
+            router_clone = router_clone.layer(tower_http::cors::CorsLayer::permissive());
         }
 
         tauri::plugin::Builder::new("axum")
