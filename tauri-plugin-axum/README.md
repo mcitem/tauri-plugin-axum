@@ -23,7 +23,7 @@ Once registered, you can access your Axum routes via:
 - macOS, iOS, and Linux: `axum://localhost/<path>`
 - Windows and Android: `http://axum.localhost/<path>` (default)
 
-> ⚠️ Note: Custom protocols currently do **not** support streaming.
+> ⚠️ Note: Custom protocols currently do **not** support streaming. ([#1404](https://github.com/tauri-apps/wry/issues/1404))
 
 - **Partial stream body support**
 
@@ -47,6 +47,7 @@ cargo add tauri-plugin-axum
 npm package:
 
 ```bash
+# Optional
 pnpm i @mcitem/tauri-plugin-axum
 ```
 
