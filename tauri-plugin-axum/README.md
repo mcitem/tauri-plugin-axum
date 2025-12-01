@@ -129,7 +129,7 @@ const instance = axios.create({ adapter: Adapter });
 
 - [Example App](https://github.com/mcitem/tauri-plugin-axum/blob/master/example/tauri-app)
 
-  - [main.tsx](https://github.com/mcitem/tauri-plugin-axum/blob/master/example/tauri-app/src/main.tsx)
+  - [App.tsx](https://github.com/mcitem/tauri-plugin-axum/blob/master/example/tauri-app/src/App.tsx)
   - [lib.rs](https://github.com/mcitem/tauri-plugin-axum/blob/master/example/tauri-app/src-tauri/src/lib.rs)
 
 ### Run Example
