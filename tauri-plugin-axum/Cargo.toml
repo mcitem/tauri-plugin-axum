@@ -20,7 +20,7 @@ cors = ["tower-http/cors"]
 catch-panic = ["tower-http/catch-panic"]
 
 [dependencies]
-tauri = { version = "2.7.0" }
+tauri = { version = "2.10.3" }
 
 thiserror = "2"
 
@@ -33,10 +33,10 @@ tower = "0.5"
 tower-http = { version = "0.6.6", optional = true }
 
 http-body-util = "0.1"
-futures-util = "0.3.31"
-tokio = { version = "1.39", features = ["macros", "sync"] }
-bytes = { version = "1.10.1", features = ["serde"] }
+futures-util = "0.3"
+tokio = { version = "1", features = ["macros", "sync"] }
+bytes = { version = "1", features = ["serde"] }
 
 
 [build-dependencies]
-tauri-plugin = { version = "2.3.1", features = ["build"] }
+tauri-plugin = { version = "2.5.4", features = ["build"] }
