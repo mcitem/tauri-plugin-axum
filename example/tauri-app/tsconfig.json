@@ -5,13 +5,12 @@
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
-
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@mcitem/tauri-plugin-axum": ["../../dist/index"],
       "@mcitem/tauri-plugin-axum/*": ["../../dist/*"]
     },
-
     /* Bundler mode */
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -19,7 +18,6 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
