@@ -5,6 +5,7 @@ const COMMANDS: &[&str] = &[
     "fetch_cancel",
     "fetch_send",
     "fetch_read_body",
+    "fetch_cancel_body",
 ];
 
 fn main() {

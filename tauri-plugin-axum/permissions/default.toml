@@ -7,4 +7,5 @@ permissions = [
     "allow-fetch-send",
     "allow-fetch-cancel",
     "allow-fetch-read-body",
+    "allow-fetch-cancel-body",
 ]

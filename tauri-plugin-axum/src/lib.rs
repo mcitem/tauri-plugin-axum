@@ -189,7 +189,8 @@ impl<R: Runtime> Builder<R> {
                 commands::fetch,
                 commands::fetch_cancel,
                 commands::fetch_send,
-                commands::fetch_read_body
+                commands::fetch_read_body,
+                commands::fetch_cancel_body
             ])
             .setup(|app, __api| {
                 app.manage(Axum(self.router));

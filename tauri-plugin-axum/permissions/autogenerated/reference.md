@@ -10,6 +10,7 @@ Default permissions for axum plugin
 - `allow-fetch-send`
 - `allow-fetch-cancel`
 - `allow-fetch-read-body`
+- `allow-fetch-cancel-body`
 
 ## Permission Table
 
@@ -120,6 +121,32 @@ Enables the fetch_cancel command without any pre-configured scope.
 <td>
 
 Denies the fetch_cancel command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`axum:allow-fetch-cancel-body`
+
+</td>
+<td>
+
+Enables the fetch_cancel_body command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`axum:deny-fetch-cancel-body`
+
+</td>
+<td>
+
+Denies the fetch_cancel_body command without any pre-configured scope.
 
 </td>
 </tr>

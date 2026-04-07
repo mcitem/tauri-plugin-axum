@@ -3,7 +3,6 @@
     "target": "es2021",
     "module": "esnext",
     "moduleResolution": "bundler",
-
     "allowJs": true,
     "strict": true,
     "noEmit": true,
@@ -11,10 +10,12 @@
     "noUnusedLocals": true,
     "noImplicitAny": true,
     "baseUrl": ".",
+    "rootDir": "src",
     "paths": {
       "axios/lib/*": ["node_modules/axios/lib/*"],
       "axios/unsafe/*": ["node_modules/axios/lib/*"]
-    }
+    },
+    "ignoreDeprecations": "6.0"
   },
   "include": ["src/*.ts", "src/*.js", "src/*.d.ts"],
   "exclude": ["dist", "node_modules"]

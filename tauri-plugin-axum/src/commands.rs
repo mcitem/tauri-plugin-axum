@@ -1,25 +1,21 @@
 use axum::{
-    body::Body,
+    body::{Body, BodyDataStream},
     http::{HeaderMap, HeaderName, HeaderValue, Method, Request, Uri},
     response::Response,
 };
 use http_body_util::BodyExt;
 use serde::{Deserialize, Serialize};
 use std::{future::Future, pin::Pin, sync::Arc};
-use tauri::{
-    command,
-    ipc::{InvokeResponseBody, Request as IpcRequest},
-    AppHandle, Manager, ResourceId, Runtime,
-};
+use tauri::ipc::Request as IpcRequest;
+use tauri::{command, AppHandle, Manager, ResourceId, Runtime, Webview};
 use tokio::sync::{
-    broadcast::{channel, Receiver, Sender},
+    oneshot::{channel, Receiver, Sender},
     Mutex,
 };
 use tower::ServiceExt;
 
-use crate::models::*;
-use crate::AxumExt;
 use crate::Result;
+use crate::{AxumExt, AxumResponse};
 
 #[command]
 pub(crate) async fn call<R: Runtime>(
@@ -40,7 +36,7 @@ pub(crate) async fn call_json<R: Runtime>(
 struct FetchRequest(Mutex<Pin<Box<dyn Future<Output = Result<Response>> + Send>>>);
 struct AbortSender(Sender<()>);
 struct AbortReceiver(Receiver<()>);
-struct FetchBody(Mutex<Body>);
+struct FetchBody(Mutex<BodyDataStream>);
 
 impl tauri::Resource for FetchRequest {}
 impl tauri::Resource for AbortSender {}
@@ -63,28 +59,48 @@ pub struct FetchReturn {
 }
 
 #[command]
-pub(crate) async fn fetch<R: Runtime>(app: AppHandle<R>, conf: FetchConf) -> Result<FetchReturn> {
+pub(crate) async fn fetch<R: Runtime>(app: Webview<R>, conf: FetchConf) -> Result<FetchReturn> {
     let mut headers = HeaderMap::new();
-    for (k, v) in conf.headers.iter() {
+    for (k, v) in conf.headers {
         if let (Ok(name), Ok(value)) = (
             HeaderName::from_bytes(k.as_bytes()),
-            HeaderValue::from_str(v),
+            HeaderValue::from_bytes(v.as_bytes()),
         ) {
             headers.append(name, value);
+        } else {
+            if cfg!(debug_assertions) {
+                eprintln!("Invalid header: {}: {}", k, v);
+            }
         }
     }
 
-    let method = Method::from_bytes(conf.method.as_bytes()).unwrap_or(Method::GET);
-    let uri: Uri = conf.uri.parse().unwrap_or_else(|_| Uri::from_static("/"));
+    let method = Method::from_bytes(conf.method.as_bytes()).unwrap_or_else(|_| {
+        if cfg!(debug_assertions) {
+            eprintln!("Invalid method: {}, defaulting to GET", conf.method);
+        }
+        Method::GET
+    });
+
+    let uri: Uri = conf.uri.parse().unwrap_or_else(|_| {
+        if cfg!(debug_assertions) {
+            eprintln!("Invalid URI: {}, defaulting to /", conf.uri);
+        };
+        Uri::from_static("/")
+    });
+
     let body = match conf.body {
         Some(b) => Body::from(b),
         None => Body::empty(),
     };
-    let mut req_builder = Request::builder().method(method).uri(uri.clone());
+
+    let mut req_builder = Request::builder().method(method).uri(uri);
+
     *req_builder.headers_mut().unwrap() = headers;
+
     let request = req_builder.body(body)?;
 
     let svc = app.axum().0.clone();
+
     let fut = async move {
         let resp = svc
             .oneshot(request)
@@ -94,7 +110,7 @@ pub(crate) async fn fetch<R: Runtime>(app: AppHandle<R>, conf: FetchConf) -> Res
     };
 
     let mut table = app.resources_table();
-    let (tx, rx) = channel::<()>(1);
+    let (tx, rx) = channel::<()>();
     Ok(FetchReturn {
         rid: table.add(FetchRequest(Mutex::new(Box::pin(fut)))),
         txid: table.add(AbortSender(tx)),
@@ -123,48 +139,55 @@ pub struct FetchSendResponseMeta {
 
 #[command]
 pub(crate) async fn fetch_send<R: Runtime>(
-    app: AppHandle<R>,
+    app: Webview<R>,
     rid: ResourceId,
     rxid: ResourceId,
     txid: ResourceId,
 ) -> Result<FetchSendResponseMeta> {
     let (req, abort_rx) = {
-        let table = app.resources_table();
+        let mut table = app.resources_table();
         let req = table.get::<FetchRequest>(rid)?;
-        let abort_rx = table.get::<AbortReceiver>(rxid)?;
+        let abort_rx = table.take::<AbortReceiver>(rxid)?;
         (req, abort_rx)
     };
-    let mut ab = abort_rx.0.resubscribe();
+
+    let Some(abort_rx) = Arc::into_inner(abort_rx) else {
+        return Err(crate::Error::Canceled);
+    };
+
     let mut fut = req.0.lock().await;
+
     let res: Response = tokio::select! {
         r = fut.as_mut() => r?,
-        _ = ab.recv() => {
+        _ = abort_rx.0 => {
             let mut table =app.resources_table();
-            table.close(rid).ok();
-            table.close(txid).ok();
-            table.close(rxid).ok();
+            table.close(rid)?;
             return Err(crate::Error::Canceled);
         }
     };
 
     let status = res.status();
+
     let mut headers_vec = Vec::new();
+
     for (k, v) in res.headers().iter() {
         headers_vec.push((
-            k.as_str().to_string(),
+            k.as_str().into(),
             v.to_str().unwrap_or_default().to_string(),
         ));
     }
 
     let mut table = app.resources_table();
 
-    let bodyid = table.add(FetchBody(Mutex::new(res.into_body())));
+    let bodyid = table.add(FetchBody(Mutex::new(res.into_body().into_data_stream())));
 
     table.close(rid).ok();
+    table.close(rxid).ok();
+    table.close(txid).ok();
 
     Ok(FetchSendResponseMeta {
         status: status.as_u16(),
-        status_text: status.canonical_reason().unwrap_or("").to_string(),
+        status_text: status.canonical_reason().unwrap_or_default().to_string(),
         headers: headers_vec,
         bodyid,
     })
@@ -172,51 +195,46 @@ pub(crate) async fn fetch_send<R: Runtime>(
 
 #[command]
 pub(crate) async fn fetch_read_body<R: Runtime>(
-    app: AppHandle<R>,
+    webview: Webview<R>,
     bodyid: ResourceId,
-    rxid: ResourceId,
-    txid: ResourceId,
-    stream_channel: tauri::ipc::Channel<InvokeResponseBody>,
-) -> Result<()> {
+) -> Result<Vec<u8>> {
     let body = {
-        let mut table = app.resources_table();
-        table.take::<FetchBody>(bodyid)?
+        let table = webview.resources_table();
+        table.get::<FetchBody>(bodyid)?
     };
-    let Some(body) = Arc::into_inner(body) else {
-        return Err(crate::Error::Canceled);
+
+    let mut body = body.0.lock().await;
+
+    let Some(chunk) = body.frame().await.transpose()? else {
+        // when Option::None
+        let mut resources_table = webview.resources_table();
+        resources_table.close(bodyid)?;
+
+        return Ok(vec![1]);
     };
-    let mut ab = {
-        let mut table = app.resources_table();
-        let ab = table.take::<AbortReceiver>(rxid)?;
-        ab.0.resubscribe()
-    };
-    let f = async {
-        let mut guard = body.0.lock().await;
-        while let Some(chunk) = guard.frame().await {
-            match chunk {
-                Ok(data) => {
-                    if let Ok(data) = data.into_data() {
-                        let mut data = data.to_vec();
-                        data.push(0);
-                        if stream_channel.send(InvokeResponseBody::Raw(data)).is_err() {
-                            break;
-                        }
-                    }
-                }
-                Err(_) => {
-                    break;
-                }
-            }
-        }
-        stream_channel.send(InvokeResponseBody::Raw(vec![1]))
-    };
-    tokio::select! {
-        _ = f => {},
-        _ = ab.recv() => {
-            return Err(crate::Error::Canceled);
+
+    let chunk = match chunk.into_data() {
+        Ok(c) => c,
+        Err(_) => {
+            // ignore Trailers
+            return Ok(vec![0]);
         }
     };
-    let mut table = app.resources_table();
-    table.close(txid).ok();
+
+    let mut chunk = chunk.to_vec();
+
+    // append a 0 byte to indicate that the body is not empty
+    chunk.push(0);
+
+    Ok(chunk.to_vec())
+}
+
+#[command]
+pub async fn fetch_cancel_body<R: Runtime>(
+    webview: Webview<R>,
+    bodyid: ResourceId,
+) -> crate::Result<()> {
+    let mut table = webview.resources_table();
+    table.close(bodyid)?;
     Ok(())
 }
