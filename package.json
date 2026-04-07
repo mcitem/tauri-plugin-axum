@@ -1,5 +1,5 @@
 {
-  "name": "@mcitem/tauri-plugin-axum",
+  "name": "tauri-plugin-axum-api",
   "version": "0.7.2",
   "author": "mcitem",
   "license": "MIT",
@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/mcitem/tauri-plugin-axum.git"
   },
-  "description": "A Tauri plugin that allows calling Axum Router endpoints directly.",
+  "description": "Call your Axum router directly — just like a local database, not a remote server.",
   "keywords": [
     "tauri-plugin",
     "axum"

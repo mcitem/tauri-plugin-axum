@@ -1,14 +1,13 @@
 # tauri-plugin-axum
 
 [![Crates.io Version](https://img.shields.io/crates/v/tauri-plugin-axum)](https://crates.io/crates/tauri-plugin-axum)
-[![NPM Version](https://img.shields.io/npm/v/@mcitem/tauri-plugin-axum)](https://www.npmjs.com/package/@mcitem/tauri-plugin-axum)
+[![NPM Version](https://img.shields.io/npm/v/@mcitem/tauri-plugin-axum)](https://www.npmjs.com/package/tauri-plugin-axum-api)
 
-A Tauri plugin that integrates the [Axum](https://github.com/tokio-rs/axum) web framework directly into your Tauri application.
-It provides a convenient way to expose APIs via custom protocols or through an HTTP-like interface inside the Tauri WebView.
+Call your Axum router directly — just like a local database, not a remote server.
 
 ---
 
-## ✨ Features
+## Features
 
 - **Custom protocol registration**
 
@@ -23,20 +22,28 @@ Once registered, you can access your Axum routes via:
 - macOS, iOS, and Linux: `axum://localhost/<path>`
 - Windows and Android: `http://axum.localhost/<path>` (default)
 
-> ⚠️ Note: Custom protocols currently do **not** support streaming. ([#1404](https://github.com/tauri-apps/wry/issues/1404))
+> Note: Custom protocols currently do **not** support streaming. ([#1404](https://github.com/tauri-apps/wry/issues/1404))
 
-- **Partial stream body support**
+- **stream body support**
 
   Supports streaming responses using either the provided fetch API or an Axios adapter:
 
   ```typescript
-  import { fetch } from "@mcitem/tauri-plugin-axum/fetch";
-  import { Adapter } from "@mcitem/tauri-plugin-axum/axios";
+  import { fetch } from "tauri-plugin-axum-api/fetch";
+  import { Adapter } from "tauri-plugin-axum-api/axios";
   ```
 
 ---
 
-## 📦 Installation
+## Installation
+
+Automatic
+
+```bash
+pnpm tauri add axum
+```
+
+or Manual
 
 Rust crate:
 
@@ -47,8 +54,7 @@ cargo add tauri-plugin-axum
 npm package:
 
 ```bash
-# Optional
-pnpm i @mcitem/tauri-plugin-axum
+pnpm i tauri-plugin-axum-api
 ```
 
 Add required capability in `src-tauri/capabilities/default.json`:
@@ -56,16 +62,14 @@ Add required capability in `src-tauri/capabilities/default.json`:
 ```jsonc
 {
   // ...
-  "permissions": ["axum:default"]
+  "permissions": ["axum:default"],
   // ...
 }
 ```
 
 ---
 
-## 🚀 Usage Example
-
-### Rust
+## Usage Example
 
 ```rust,no_run
 // URI scheme protocols are registered when the WebView is created.
@@ -75,42 +79,14 @@ Add required capability in `src-tauri/capabilities/default.json`:
 // macOS, iOS, Linux: axum://localhost/<path>
 // Windows, Android: http://axum.localhost/<path> (default)
 
-tauri::Builder::default().plugin(tauri_plugin_axum::init(Router::new()));
+tauri::Builder::default().plugin(tauri_plugin_axum::init(axum::Router::new()));
 
-window.fetch("http://axum.localhost/");
 ```
-
-```rust,no_run
-#[derive(Serialize, Deserialize)]
-struct Greet {
-    axum: String,
-    tauri: String,
-}
-
-async fn post_handle(Json(j): Json<Greet>) -> Json<Greet> {
-    Json(Greet {
-        axum: format!("axum, {}!", j.axum),
-        tauri: format!("tauri, {}!", j.tauri),
-    })
-}
-
-// Initialize router asynchronously
-tauri::Builder::default()
-    .setup(|app| {
-        let path = app.path().app_config_dir()?;
-        app.handle().plugin(tauri_plugin_axum::block_init(async {
-            println!("Application config path: {:?}", path);
-            router::router()
-        }))?;
-        Ok(())
-    });
-```
-
-### TypeScript
 
 ```typescript
-// Using fetch
-import { fetch } from "@mcitem/tauri-plugin-axum/fetch";
+window.fetch("http://axum.localhost/");
+
+import { fetch } from "tauri-plugin-axum-api/fetch";
 
 fetch("/", { method: "GET" })
   .then((res) => res.text())
@@ -118,17 +94,16 @@ fetch("/", { method: "GET" })
 
 // Using Axios adapter
 import axios from "axios";
-import { Adapter } from "@mcitem/tauri-plugin-axum/axios";
+import { Adapter } from "tauri-plugin-axum-api/axios";
 
 const instance = axios.create({ adapter: Adapter });
 ```
 
 ---
 
-## 📚 Example Project
+## Example Project
 
 - [Example App](https://github.com/mcitem/tauri-plugin-axum/blob/master/example/tauri-app)
-
   - [App.tsx](https://github.com/mcitem/tauri-plugin-axum/blob/master/example/tauri-app/src/App.tsx)
   - [lib.rs](https://github.com/mcitem/tauri-plugin-axum/blob/master/example/tauri-app/src-tauri/src/lib.rs)
 
