@@ -37,6 +37,7 @@ export default defineConfig({
     typescript({
       declaration: true,
       declarationDir: "dist",
+      outDir: "dist",
     }),
   ],
   external: [/^@tauri-apps\/api/, /^axios/],
