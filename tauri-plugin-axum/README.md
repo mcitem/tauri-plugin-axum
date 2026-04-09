@@ -1,7 +1,7 @@
 # tauri-plugin-axum
 
 [![Crates.io Version](https://img.shields.io/crates/v/tauri-plugin-axum)](https://crates.io/crates/tauri-plugin-axum)
-[![NPM Version](https://img.shields.io/npm/v/@mcitem/tauri-plugin-axum)](https://www.npmjs.com/package/tauri-plugin-axum-api)
+[![NPM Version](https://img.shields.io/npm/v/tauri-plugin-axum-api)](https://www.npmjs.com/package/tauri-plugin-axum-api)
 
 Call your Axum router directly — just like a local database, not a remote server.
 
