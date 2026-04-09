@@ -9,6 +9,7 @@ use http_body_util::BodyExt;
 use std::collections::HashMap;
 use std::future::Future;
 use std::marker::PhantomData;
+#[cfg(not(feature = "tokio-rwlock"))]
 use std::ops::{Deref, DerefMut};
 use tauri::async_runtime::block_on;
 use tauri::ipc::{InvokeBody, Request as IpcRequest};
@@ -33,8 +34,27 @@ impl<R: Runtime, T: Manager<R>> crate::AxumExt<R> for T {
     }
 }
 
+#[cfg(feature = "tokio-rwlock")]
+pub struct Axum(pub tokio::sync::RwLock<Router>);
+
+#[cfg(not(feature = "tokio-rwlock"))]
 pub struct Axum(pub Router);
 
+impl Axum {
+    pub async fn inner(&self) -> Router {
+        #[cfg(feature = "tokio-rwlock")]
+        {
+            self.0.read().await.clone()
+        }
+
+        #[cfg(not(feature = "tokio-rwlock"))]
+        {
+            self.0.clone()
+        }
+    }
+}
+
+#[cfg(not(feature = "tokio-rwlock"))]
 impl Deref for Axum {
     type Target = Router;
 
@@ -43,6 +63,7 @@ impl Deref for Axum {
     }
 }
 
+#[cfg(not(feature = "tokio-rwlock"))]
 impl DerefMut for Axum {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
@@ -63,7 +84,9 @@ impl Axum {
         };
 
         let result = rr.body(Body::from(bytes))?;
-        let response = self.0.clone().call(result).await.unwrap();
+
+        let response = self.inner().await.call(result).await.unwrap();
+
         let status = response.status();
         let mut headers: HashMap<String, String> = response
             .headers()
@@ -99,8 +122,8 @@ impl Axum {
         rr = rr.method(req.headers().get("x-method").ok_or(Error::Method)?.as_ref());
 
         let res = self
-            .0
-            .clone()
+            .inner()
+            .await
             .call(rr.body(Body::from(body))?)
             .await
             .unwrap();
@@ -193,7 +216,12 @@ impl<R: Runtime> Builder<R> {
                 commands::fetch_cancel_body
             ])
             .setup(|app, __api| {
+                #[cfg(not(feature = "tokio-rwlock"))]
                 app.manage(Axum(self.router));
+
+                #[cfg(feature = "tokio-rwlock")]
+                app.manage(Axum(tokio::sync::RwLock::new(self.router)));
+
                 Ok(())
             })
             .build()

@@ -99,7 +99,7 @@ pub(crate) async fn fetch<R: Runtime>(app: Webview<R>, conf: FetchConf) -> Resul
 
     let request = req_builder.body(body)?;
 
-    let svc = app.axum().0.clone();
+    let svc = app.axum().inner().await;
 
     let fut = async move {
         let resp = svc
