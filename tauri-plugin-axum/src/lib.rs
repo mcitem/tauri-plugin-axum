@@ -54,8 +54,10 @@ impl Axum {
     }
 }
 
-#[cfg(not(feature = "tokio-rwlock"))]
 impl Deref for Axum {
+    #[cfg(feature = "tokio-rwlock")]
+    type Target = tokio::sync::RwLock<Router>;
+    #[cfg(not(feature = "tokio-rwlock"))]
     type Target = Router;
 
     fn deref(&self) -> &Self::Target {
@@ -63,7 +65,6 @@ impl Deref for Axum {
     }
 }
 
-#[cfg(not(feature = "tokio-rwlock"))]
 impl DerefMut for Axum {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
