@@ -43,6 +43,12 @@ impl<R: Runtime, T: Manager<R>> crate::AxumExt<R> for T {
     #[cfg(feature = "tokio-rwlock")]
     fn set_router(&self, router: Router) -> impl std::future::Future<Output = ()> {
         async move {
+            #[cfg(feature = "catch-panic")]
+            let router = router.layer(tower_http::catch_panic::CatchPanicLayer::new());
+
+            #[cfg(feature = "cors")]
+            let router = router.layer(tower_http::cors::CorsLayer::permissive());
+
             let axum = self.state::<Axum>();
             *axum.write().await = router;
         }
