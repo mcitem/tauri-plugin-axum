@@ -27,11 +27,21 @@ pub use models::*;
 /// Extensions to [`tauri::App`], [`tauri::AppHandle`] and [`tauri::Window`] to access the axum APIs.
 pub trait AxumExt<R: Runtime> {
     fn axum(&self) -> &Axum;
+    #[cfg(feature = "tokio-rwlock")]
+    fn set_router(&self, router: Router) -> impl std::future::Future<Output = ()>;
 }
 
 impl<R: Runtime, T: Manager<R>> crate::AxumExt<R> for T {
     fn axum(&self) -> &Axum {
         self.state::<Axum>().inner()
+    }
+
+    #[cfg(feature = "tokio-rwlock")]
+    fn set_router(&self, router: Router) -> impl std::future::Future<Output = ()> {
+        async move {
+            let axum = self.state::<Axum>();
+            *axum.write().await = router;
+        }
     }
 }
 
