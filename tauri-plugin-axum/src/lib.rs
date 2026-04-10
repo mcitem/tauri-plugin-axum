@@ -29,6 +29,10 @@ pub trait AxumExt<R: Runtime> {
     fn axum(&self) -> &Axum;
     #[cfg(feature = "tokio-rwlock")]
     fn set_router(&self, router: Router) -> impl std::future::Future<Output = ()>;
+    #[cfg(feature = "tokio-rwlock")]
+    fn block_set_router(&self, router: Router) {
+        block_on(self.set_router(router))
+    }
 }
 
 impl<R: Runtime, T: Manager<R>> crate::AxumExt<R> for T {
@@ -42,6 +46,11 @@ impl<R: Runtime, T: Manager<R>> crate::AxumExt<R> for T {
             let axum = self.state::<Axum>();
             *axum.write().await = router;
         }
+    }
+
+    #[cfg(feature = "tokio-rwlock")]
+    fn block_set_router(&self, router: Router) {
+        block_on(self.set_router(router))
     }
 }
 
