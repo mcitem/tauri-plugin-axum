@@ -1,20 +1,21 @@
 #![doc = include_str!("../README.md")]
 
-use axum::body::Body;
-use axum::extract::Request;
-use axum::http::Response;
-use axum::Router;
+use axum::{body::Body, extract::Request, http::Response, Router};
 use futures_util::FutureExt;
 use http_body_util::BodyExt;
-use std::collections::HashMap;
-use std::future::Future;
-use std::marker::PhantomData;
-#[cfg(not(feature = "tokio-rwlock"))]
-use std::ops::{Deref, DerefMut};
-use tauri::async_runtime::block_on;
-use tauri::ipc::{InvokeBody, Request as IpcRequest};
-use tauri::{plugin::TauriPlugin, Manager, Runtime};
+use std::{collections::HashMap, future::Future, marker::PhantomData, ops::Deref};
+use tauri::{
+    async_runtime::block_on,
+    ipc::{InvokeBody, Request as IpcRequest},
+    plugin::TauriPlugin,
+    Manager, Runtime,
+};
 use tower::{Service, ServiceExt};
+
+#[cfg(feature = "tokio-rwlock")]
+use std::sync::Arc;
+#[cfg(feature = "tokio-rwlock")]
+use tokio::sync::RwLock;
 
 mod commands;
 mod error;
@@ -35,7 +36,7 @@ impl<R: Runtime, T: Manager<R>> crate::AxumExt<R> for T {
 }
 
 #[cfg(feature = "tokio-rwlock")]
-pub struct Axum(pub tokio::sync::RwLock<Router>);
+pub struct Axum(pub Arc<RwLock<Router>>);
 
 #[cfg(not(feature = "tokio-rwlock"))]
 pub struct Axum(pub Router);
@@ -44,7 +45,7 @@ impl Axum {
     pub async fn inner(&self) -> Router {
         #[cfg(feature = "tokio-rwlock")]
         {
-            self.0.read().await.clone()
+            self.read().await.clone()
         }
 
         #[cfg(not(feature = "tokio-rwlock"))]
@@ -56,18 +57,12 @@ impl Axum {
 
 impl Deref for Axum {
     #[cfg(feature = "tokio-rwlock")]
-    type Target = tokio::sync::RwLock<Router>;
+    type Target = Arc<RwLock<Router>>;
     #[cfg(not(feature = "tokio-rwlock"))]
     type Target = Router;
 
     fn deref(&self) -> &Self::Target {
         &self.0
-    }
-}
-
-impl DerefMut for Axum {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
     }
 }
 
@@ -175,22 +170,28 @@ impl<R: Runtime> Builder<R> {
     }
 
     pub fn build(self) -> TauriPlugin<R> {
-        let mut router_clone = self.router.clone();
+        let router = self.router;
 
         #[cfg(feature = "catch-panic")]
-        {
-            router_clone = router_clone.layer(tower_http::catch_panic::CatchPanicLayer::new());
-        }
+        let router = router.layer(tower_http::catch_panic::CatchPanicLayer::new());
 
         #[cfg(feature = "cors")]
-        {
-            router_clone = router_clone.layer(tower_http::cors::CorsLayer::permissive());
-        }
+        let router = router.layer(tower_http::cors::CorsLayer::permissive());
+
+        #[cfg(feature = "tokio-rwlock")]
+        let router = Arc::new(RwLock::new(router));
+
+        let svc = router.clone();
 
         tauri::plugin::Builder::new("axum")
             .register_asynchronous_uri_scheme_protocol("axum", move |_ctx, request, responder| {
-                let svc = router_clone.clone();
+                let svc = svc.clone();
                 tauri::async_runtime::spawn(async move {
+                    #[cfg(feature = "tokio-rwlock")]
+                    let svc = svc.read().await.clone();
+                    #[cfg(not(feature = "tokio-rwlock"))]
+                    let svc = svc;
+
                     let (mut parts, body) = svc
                         .oneshot(request.map(Body::from))
                         .await
@@ -217,12 +218,7 @@ impl<R: Runtime> Builder<R> {
                 commands::fetch_cancel_body
             ])
             .setup(|app, __api| {
-                #[cfg(not(feature = "tokio-rwlock"))]
-                app.manage(Axum(self.router));
-
-                #[cfg(feature = "tokio-rwlock")]
-                app.manage(Axum(tokio::sync::RwLock::new(self.router)));
-
+                app.manage(Axum(router));
                 Ok(())
             })
             .build()

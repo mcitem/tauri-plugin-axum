@@ -15,7 +15,7 @@ readme = "./README.md"
 links = "tauri-plugin-axum"
 
 [features]
-default = ["cors"]
+default = ["cors", "tokio-rwlock"]
 cors = ["tower-http/cors"]
 catch-panic = ["tower-http/catch-panic"]
 tokio-rwlock = []
